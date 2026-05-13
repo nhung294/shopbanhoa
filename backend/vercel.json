@@ -1,12 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "outputDirectory": "dist",
+  "functions": {
+    "server.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/server.js"
     }
   ]
 }
