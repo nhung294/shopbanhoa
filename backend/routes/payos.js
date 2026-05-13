@@ -4,6 +4,11 @@ const payos = require('../config/payos');
 const Order = require('../models/Order');
 const { protect } = require('../middleware/auth');
 
+// Verify PayOS configuration on startup
+if (!payos) {
+  console.error('ERROR: PayOS client not initialized');
+}
+
 // POST /api/payos/payment-link - Tạo link thanh toán
 router.post('/payment-link', protect, async (req, res) => {
   try {
@@ -47,6 +52,12 @@ router.post('/payment-link', protect, async (req, res) => {
       cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout?status=cancel&orderId=${order._id}`,
     };
 
+    console.log('[PayOS] Creating payment link with data:', {
+      orderCode: paymentData.orderCode,
+      amount: paymentData.amount,
+      orderId: order._id,
+    });
+
     const paymentLink = await payos.paymentRequests.create(paymentData);
 
     order.paymentMethod = 'payos';
@@ -69,8 +80,18 @@ router.post('/payment-link', protect, async (req, res) => {
       orderCode: paymentData.orderCode,
     });
   } catch (err) {
-    console.error('[PayOS Error]:', err.message);
-    res.status(500).json({ message: err.message || 'Failed to create payment link' });
+    console.error('[PayOS Error] Detailed error info:');
+    console.error('- Message:', err.message);
+    console.error('- Code:', err.code);
+    console.error('- Status:', err.status);
+    console.error('- Stack:', err.stack);
+    console.error('- Full error:', JSON.stringify(err, null, 2));
+    
+    res.status(500).json({ 
+      message: err.message || 'Failed to create payment link',
+      code: err.code,
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 });
 

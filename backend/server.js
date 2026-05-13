@@ -19,19 +19,36 @@ app.use('/api/payos', require('./routes/payos'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Internal server error' });
+  console.error('=== ERROR DETAILS ===');
+  console.error('Message:', err.message);
+  console.error('Stack:', err.stack);
+  console.error('Code:', err.code);
+  console.error('====================');
+  res.status(500).json({ 
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 const PORT = process.env.PORT || 5000;
 
 const start = async () => {
-  await connectDB();
-  if (process.env.SEED_ON_START === 'true') {
-    const seed = require('./seed');
-    await seed();
+  try {
+    await connectDB();
+    console.log('Database connected successfully');
+    
+    if (process.env.SEED_ON_START === 'true') {
+      console.log('Starting seed process...');
+      const seed = require('./seed');
+      await seed();
+      console.log('Seed completed');
+    }
+    
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  } catch (err) {
+    console.error('Failed to start server:', err.message);
+    process.exit(1);
   }
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 };
 
 start();
