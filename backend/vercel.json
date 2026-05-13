@@ -1,11 +1,6 @@
 {
   "version": 2,
   "installCommand": "npm install",
-  "functions": {
-    "server.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
