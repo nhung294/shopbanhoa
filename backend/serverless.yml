@@ -1,0 +1,42 @@
+service: bloom-bright-backend
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    MONGODB_URI: ${env:MONGODB_URI}
+    JWT_SECRET: ${env:JWT_SECRET}
+    PAYOS_CLIENT_ID: ${env:PAYOS_CLIENT_ID}
+    PAYOS_API_KEY: ${env:PAYOS_API_KEY}
+    PAYOS_CHECKSUM_KEY: ${env:PAYOS_CHECKSUM_KEY}
+    FRONTEND_URL: ${env:FRONTEND_URL}
+    NODE_ENV: production
+
+functions:
+  api:
+    handler: backend/handler.handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: /
+          method: ANY
+          cors: true
+
+plugins:
+  - serverless-plugin-tracing
+  - serverless-offline
+
+package:
+  individually: false
+  patterns:
+    - '!node_modules/**'
+    - '!.git/**'
+    - '!*.env'
+    - backend/**
